@@ -3,8 +3,8 @@ version: '3.8'
 services:
   web:
     build:
-      context: .
-      dockerfile: ./src/Dockerfile
+      context: ./src
+      dockerfile: ./Dockerfile
     ports:
       - "8000:8000"
     networks:
@@ -12,8 +12,8 @@ services:
 
   bot:
     build:
-      context: .
-      dockerfile: ./tg_bot/Dockerfile
+      context: ./tg_bot
+      dockerfile: Dockerfile
     networks:
       - app-network
 
