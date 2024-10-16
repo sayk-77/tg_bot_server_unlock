@@ -259,7 +259,7 @@ async def check_payment_status(bot: Bot, invoice_id, amount, user_id, state):
                 response = requests.get(f"{SERVER_URL}CreditInfo", params={"user_id": user_id})
                 if response.status_code == 200:
                     result = response.json()
-                    await bot.send_message((f"You balance  {result['balance']} credits."), reply_markup=create_main_keyboard())
+                    await bot.send_message(user_id, text=f"You balance  {result['balance']} credits.", reply_markup=create_main_keyboard())
                 await state.clear()
                 return
             else:
