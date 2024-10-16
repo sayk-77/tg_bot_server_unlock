@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: ./tg_bot/Dockerfile
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
