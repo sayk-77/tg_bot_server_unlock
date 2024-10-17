@@ -12,3 +12,12 @@ class GenerateCodeRequest(BaseModel):
 class VerificationCodeRequest(BaseModel):
     user_id: int
     input_code: int
+
+
+class DestroyCodeRequest(BaseModel):
+    user_id: int
+    user_code: int
+
+
+
+
