@@ -7,4 +7,4 @@ COPY . .
 RUN pip install --no-cache-dir -r src/requirements.txt
 RUN pip install --no-cache-dir -r tg_bot/requirements.txt
 
-CMD ["sh", "-c", "python src/server.py & python tg_bot/bot.py"]
+CMD ["sh", "-c", "python3 -m  src.server & python3 -m tg_bot.bot"]
