@@ -2,39 +2,46 @@ import os
 
 import requests
 from aiogram import Dispatcher, types, Bot, F
-from aiogram.enums import ContentType
 from aiogram.filters import CommandStart
 from aiogram.types import LabeledPrice
 from aiogram.fsm.context import FSMContext
 
 from tg_bot.bot_instance import bot
-from tg_bot.keyboards import create_main_keyboard, currency_keyboard, create_credit_purchase_keyboard, payment_stars, \
-    payment_card
+from tg_bot.keyboards import create_main_keyboard, currency_keyboard, create_credit_purchase_keyboard, payment_stars, payment_card
 from tg_bot.states import UserState
 from tg_bot.payments import check_payment_status, create_invoice
 from dotenv import load_dotenv
 
-from tg_bot.utils import currency_rates, stars_course, get_user_code, is_user_admin
+from tg_bot.utils import currency_rates, stars_course, get_user_balance, check_user, set_user_name, delete_code_user
 
 load_dotenv()
 SERVER_URL = os.getenv('SERVER_URL')
 YOU_MONEY_API = os.getenv('YOU_MONEY_API')
 
 
-async def hello_message(message: types.Message) -> None:
+async def hello_message(message: types.Message, state: FSMContext) -> None:
     user_id = message.from_user.id
-    response = requests.post(f"{SERVER_URL}Login", json={"id": user_id})
 
-    if response.status_code == 200:
-        is_admin = await is_user_admin(user_id)
-        await message.answer(f"Hello, {message.from_user.full_name}! Your id {user_id}",
-                             reply_markup=create_main_keyboard(is_admin))
-    else:
-        await message.answer("Error during registration.")
+    name = await check_user(user_id)
+    if name:
+        await message.answer(f"Hi {name}, your id {user_id}")
+        return
+
+    await message.answer("Hi, enter a name for your account, it will be used for authorization")
+    await state.set_state(UserState.WAITING_FOR_NAME)
 
 
 async def handle_message(message: types.Message, state: FSMContext) -> None:
     user_id = message.from_user.id
+
+    if await state.get_state() == UserState.WAITING_FOR_NAME.state:
+        name = message.text
+        result = await set_user_name(user_id, name)
+        if result:
+            await message.answer(f"You have successfully entered your name: {name}.Your id {user_id}", reply_markup=create_main_keyboard())
+            await state.clear()
+        else:
+            await message.answer("An error has occurred, please try again later")
 
     if message.text == "Buy Credits":
         await message.answer("How many credits do you want to buy?", reply_markup=create_credit_purchase_keyboard())
@@ -61,21 +68,17 @@ async def handle_message(message: types.Message, state: FSMContext) -> None:
         return
 
     if message.text == "Credit Info":
-        response = requests.get(f"{SERVER_URL}CheckCredits", params={"user_id": user_id})
-        if response.status_code == 200:
-            result = response.json()
-            await message.answer(f"You have {result['balance']} credits.")
-        else:
-            await message.answer("Error fetching credit information.")
+        balance = await get_user_balance(user_id)
+        await message.answer(f"You have {balance} credits.")
 
-    if message.text == "View All Users":
-        response = requests.get(f"{SERVER_URL}AllUsers")
-        if response.status_code == 200:
-            users = response.json()
-            users_info = "\n".join([f"ID: {user['id']}, Balance: {user['balance']}" for user in users])
-            await message.answer(f"Users:\n{users_info}")
-        else:
-            await message.answer("Error fetching users.")
+    # if message.text == "View All Users":
+    #     response = requests.get(f"{SERVER_URL}AllUsers")
+    #     if response.status_code == 200:
+    #         users = response.json()
+    #         users_info = "\n".join([f"ID: {user['id']}, Balance: {user['balance']}" for user in users])
+    #         await message.answer(f"Users:\n{users_info}")
+    #     else:
+    #         await message.answer("Error fetching users.")
 
     if message.text == "Cancel":
         await state.clear()
@@ -94,11 +97,8 @@ async def handle_currency_selection(callback_query: types.CallbackQuery, state: 
 
     if callback_query.data == "button_cancel":
         user_id = callback_query.from_user.id
-        user_code = await get_user_code(user_id)
-
-        response = requests.post(f"{SERVER_URL}DestroyCode", json={"user_id": user_id, "user_code": user_code}).json()
-        print(response)
-        await bot.edit_message_text(text=response['message'], chat_id=user_id,
+        result = await delete_code_user(user_id)
+        await bot.edit_message_text(text=result, chat_id=user_id,
                                     message_id=callback_query.message.message_id)
         return
 

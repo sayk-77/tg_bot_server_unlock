@@ -4,8 +4,8 @@ import os
 import requests
 from aiogram import Bot
 from dotenv import load_dotenv
-
 from tg_bot.keyboards import create_main_keyboard
+from utils import get_user_balance, add_credit_user
 
 load_dotenv()
 CRYPTO_TOKEN = os.getenv('CRYPTO_TOKEN')
@@ -66,20 +66,18 @@ async def check_payment_status(bot: Bot, invoice_id, amount, user_id, state):
         currency = state_data.get('currency')
 
         if status == 'paid':
-            response = requests.post(f"{SERVER_URL}BuyCredits", params={"user_id": user_id, "amount": amount})
-            if response.status_code == 200:
+            new_balance = await add_credit_user(user_id, amount)
+            if new_balance is not None:
                 await bot.edit_message_text(
                     chat_id=user_id,
                     message_id=message_id,
                     text=f"Replenishment is successful! \nAmount: {amount} {currency}\nTime: {time}",
                 )
-                response = requests.get(f"{SERVER_URL}CheckCredits", params={"user_id": user_id})
-                if response.status_code == 200:
-                    result = response.json()
-                    await bot.send_message(user_id, text=f"You balance  {result['balance']} credits.", reply_markup=create_main_keyboard())
+                balance = await get_user_balance(user_id)
+                await bot.send_message(user_id, text=f"You balance  {balance} credits.", reply_markup=create_main_keyboard())
                 await state.clear()
                 return
             else:
-                await bot.send_message(user_id, text="Error during credit purchase.")
+                await bot.send_message(user_id, text="Error during credit purchase.", reply_markup=create_main_keyboard())
             return
-    await bot.send_message(user_id, text="Payment not completed yet. Please wait or try again later.")
+    await bot.send_message(user_id, text="Payment not completed yet. Please wait or try again later.", reply_markup=create_main_keyboard())

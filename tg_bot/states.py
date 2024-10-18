@@ -5,3 +5,4 @@ class UserState(StatesGroup):
     WAITING_FOR_AMOUNT = State()
     WAITING_FOR_PAYMENT = State()
     WAITING_FOR_AMOUNT_XTR = State()
+    WAITING_FOR_NAME = State()
