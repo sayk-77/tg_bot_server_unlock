@@ -10,4 +10,4 @@ RUN pip install supervisor
 
 COPY supervisord.conf /etc/supervisord.conf
 
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["sh", "-c", "python3 -m  src.server & python3 -m tg_bot.bot"]

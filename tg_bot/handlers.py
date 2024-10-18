@@ -1,6 +1,4 @@
 import os
-
-import requests
 from aiogram import Dispatcher, types, Bot, F
 from aiogram.filters import CommandStart
 from aiogram.types import LabeledPrice
@@ -11,7 +9,6 @@ from tg_bot.keyboards import create_main_keyboard, currency_keyboard, create_cre
 from tg_bot.states import UserState
 from tg_bot.payments import check_payment_status, create_invoice
 from dotenv import load_dotenv
-
 from tg_bot.utils import currency_rates, stars_course, get_user_balance, check_user, set_user_name, delete_code_user
 
 load_dotenv()

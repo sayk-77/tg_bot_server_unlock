@@ -5,7 +5,7 @@ import requests
 from aiogram import Bot
 from dotenv import load_dotenv
 from tg_bot.keyboards import create_main_keyboard
-from utils import get_user_balance, add_credit_user
+from tg_bot.utils import get_user_balance, add_credit_user
 
 load_dotenv()
 CRYPTO_TOKEN = os.getenv('CRYPTO_TOKEN')
