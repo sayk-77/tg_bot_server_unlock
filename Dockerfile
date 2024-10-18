@@ -7,4 +7,6 @@ COPY . .
 RUN pip install --no-cache-dir -r src/requirements.txt
 RUN pip install --no-cache-dir -r tg_bot/requirements.txt
 
-CMD ["sh", "-c", "python3 -m  src.server & python3 -m tg_bot.bot"]
+COPY supervisord.conf /etc/supervisord.conf
+
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
